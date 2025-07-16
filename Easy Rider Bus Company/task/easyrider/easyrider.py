@@ -45,6 +45,16 @@ def check_stop_type(data):
             return True
 
 
+def list_ids_and_stops(bus_id, stop_id):
+    global list_128, list_256, list_512
+    if bus_id == 128:
+        list_128.append(stop_id)
+    elif bus_id == 256:
+        list_256.append(stop_id)
+    elif bus_id == 512:
+        list_512.append(stop_id)
+
+
 total_errors = 0
 bus_ids = 0
 stop_ids = 0
@@ -75,12 +85,8 @@ for i in raw_data:
     if check_time_format(i[filed_names[5]]):
         total_errors += 1
         a_times += 1
-    if i[filed_names[0]] == 128:
-        list_128.append(i[filed_names[1]])
-    elif i[filed_names[0]] == 256:
-        list_256.append(i[filed_names[1]])
-    elif i[filed_names[0]] == 512:
-        list_512.append(i[filed_names[1]])
+    list_ids_and_stops(i[filed_names[0]], i[filed_names[1]])
+
 
 print('Type and field validation:', total_errors, 'errors')
 print('bus_id:', bus_ids)
