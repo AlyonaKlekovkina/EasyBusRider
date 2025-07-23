@@ -55,11 +55,21 @@ def create_transfer_stops_list(line_128_stop_names, line_256_stop_names, line_51
 
 
 def create_start_stop_lists(stop_type, stop_name):
-    global stop_list, start_list
+    global stop_list, start_list, on_demand_list
     if stop_type == 'S' and stop_name not in start_list:
         start_list.append(stop_name)
     if stop_type == 'F' and stop_name not in stop_list:
         stop_list.append(stop_name)
+    if stop_type == 'O' and stop_name not in on_demand_list and stop_name not in stop_list and stop_name not in start_list:
+        on_demand_list.append(stop_name)
+
+
+def check_time(line_stop_time):
+    for i in range(len(line_stop_time) -1):
+        if line_stop_time[i] > line_stop_time[i+1]:
+            return 1
+
+    return 0
 
 
 total_errors = 0
@@ -82,8 +92,13 @@ line_128_stop_names = []
 line_256_stop_names = []
 line_512_stop_names = []
 
+line_128_stop_time = []
+line_256_stop_time = []
+line_512_stop_time = []
+
 stop_list = []
 start_list = []
+on_demand_list = []
 
 for i in raw_data:
     if check_integer_type(i[filed_names[0]]) is False:
@@ -107,15 +122,19 @@ for i in raw_data:
     create_lines_by_id(i[filed_names[0]], i[filed_names[1]], line_128_stop_ids, line_256_stop_ids, line_512_stop_ids)
     create_lines_by_id(i[filed_names[0]], i[filed_names[4]], line_128_stop_types, line_256_stop_types, line_512_stop_types)
     create_lines_by_id(i[filed_names[0]], i[filed_names[2]], line_128_stop_names, line_256_stop_names, line_512_stop_names)
+    create_lines_by_id(i[filed_names[0]], i[filed_names[5]], line_128_stop_time, line_256_stop_time, line_512_stop_time)
     create_start_stop_lists(i[filed_names[4]], i[filed_names[2]])
 
-print('Type and field validation:', total_errors, 'errors')
+
+time_errors = check_time(line_128_stop_time) + check_time(line_256_stop_time) + check_time(line_512_stop_time)
+
+print('Type and field validation:', total_errors + time_errors, 'errors')
 print('bus_id:', bus_ids)
 print('stop_id:', stop_ids)
 print('stop_name:', stop_names)
 print('next_stop:', next_stops)
 print('stop_type:', stop_types)
-print('a_time:', a_times)
+print('a_time:', a_times + time_errors)
 
 print('Line names and number of stops:')
 if len(line_128_stop_ids) != 0:
@@ -135,3 +154,4 @@ if ('S' in line_128_stop_types and 'F' in line_128_stop_types) and ('S' in line_
     print('Start stops:', len(start_list), sorted(start_list))
     print('Transfer stops:', len(create_transfer_stops_list(line_128_stop_names, line_256_stop_names, line_512_stop_names)), create_transfer_stops_list(line_128_stop_names, line_256_stop_names, line_512_stop_names))
     print('Finish stops:', len(stop_list), sorted(stop_list))
+    print('On demand stops:', len(on_demand_list), sorted(on_demand_list))
